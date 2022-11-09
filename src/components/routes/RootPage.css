@@ -1,0 +1,19 @@
+@import '~antd/dist/antd.css';
+
+.basic-layout {
+  min-height: 100vh;
+  background: #fff;
+}
+
+.basic-content {
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+  background: #fff;
+  padding: 24px;
+  max-width: 80rem;
+  margin: auto;
+}
+
+.basic-footer {
+  
+}
