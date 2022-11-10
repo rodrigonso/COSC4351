@@ -14,7 +14,7 @@ export default function FooterComp() {
 						<img src={logo} height={32} width={32} style={{ marginTop: -10}} />
 						<span style={{ marginLeft: '0.25rem', fontSize: 16, fontWeight: 700 }}>Ringabell</span>
 				</div>
-				<div style={{ display: 'flex', gap: '8rem' }}>
+				{/* <div style={{ display: 'flex', gap: '8rem' }}>
 						<div>
 						<Text strong>QUICK LINKS</Text>
 						<div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: '0.75rem' }}>
@@ -31,7 +31,7 @@ export default function FooterComp() {
 							<Text>Hey there</Text>
 							</div>
 					</div>
-				</div>
+				</div> */}
 			</div>
     </Footer>
   )
