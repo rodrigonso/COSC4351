@@ -32,7 +32,7 @@ export default function ReservePage() {
   const [guest, setGuest] = useState(false);
   const [auth, setAuth] = useState(false);
   const [state, setState] = useState(States.USER_INFO)
-  const [reservation, setReservation] = useState({totalGuests: 4});
+  const [reservation, setReservation] = useState({ total: 10 });
   useEffect(() => {
     const auth = getAuth();
     onAuthStateChanged(auth, user => {
@@ -42,7 +42,6 @@ export default function ReservePage() {
   });
 
   const renderCardBody = () => {
-    console.log(auth, state);
     if (!auth && !guest && state === States.USER_INFO) return <ReservationLogin handleGuest={() => setGuest(!guest)}/>
     if (auth && state === States.USER_INFO) return <ReservationAuthUser />
     if (guest && state === States.USER_INFO) return <ReservationForm guest={guest} />
@@ -62,7 +61,7 @@ export default function ReservePage() {
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <Title>Reserve your table</Title>
       </div>
-      <Card style={{ padding: 0 }} title={<Steps current={state} size="small" items={steps} style={{ minWidth: '45rem', maxWidth: '60rem'}} />}>
+      <Card style={{ padding: 0 }} title={<Steps current={state} size="small" items={steps} style={{ minWidth: '45rem', maxWidth: '70rem'}} />}>
         <ReservationContext.Provider value={{ state, setState, reservation, setReservation }}>
           {renderCardBody()}
         </ReservationContext.Provider>

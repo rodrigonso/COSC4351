@@ -1,33 +1,41 @@
 import React, { useContext, useState } from 'react'
-import { Card, Typography, Statistic, Button } from 'antd';
+import { Card, Typography, Statistic, Button, Calendar, TimePicker, notification, Empty } from 'antd';
+import moment from 'moment';
 
-
-import table2 from '../../dinner-table-2.png'; 
-import table4 from '../../dinner-table-4.png';
-import table6 from '../../dinner-table-6.png';
-import table8 from '../../dinner-table-8.png';
 import { ReservationContext } from '../routes/ReservePage';
+import { getFirestore } from 'firebase/firestore';
+import { connectFunctionsEmulator, getFunctions, httpsCallable } from 'firebase/functions';
 
 const { Title, Text } = Typography;
-
-const tables = [
-  { id: 1, name: 'Table 1', capacity: 4, isVacant: true, startDate: 0, endDate: 0, icon: table4, isSelected: false },
-  { id: 2, name: 'Table 2', capacity: 8, isVacant: true, startDate: 0, endDate: 0, icon: table8, isSelected: false },
-  { id: 3, name: 'Table 3', capacity: 2, isVacant: true, startDate: 0, endDate: 0, icon: table2, isSelected: false },
-  { id: 4, name: 'Table 4', capacity: 6, isVacant: true, startDate: 0, endDate: 0, icon: table6, isSelected: false },
-  { id: 5, name: 'Table 5', capacity: 4, isVacant: true, startDate: 0, endDate: 0, icon: table4, isSelected: false },
-];
 
 export default function ReservationTablePicker() {
   const { state, setState, reservation, setReservation } = useContext(ReservationContext);
 
+  const [selectedTime, setSelectedTime] = useState(new Date());
+  const [selectedDay, setSelectedDay] = useState(new Date());
   const [currentNumberOfGuests, setCurrentNumberOfGuests] = useState(0);
-  const [availableTables, setAvailableTables] = useState(tables);
+  const [availableTables, setAvailableTables] = useState([]);
   const [selectedTables, setSelectedTables] = useState([]);
 
-  const handleNextStep = () => {
-    const withTableInfo = Object.assign(reservation, {tables: selectedTables});
+  const formatDate = () => {
+    const startDate = new Date(selectedDay);
+    startDate.setHours(selectedTime.getHours(), 0, 0, 0);
 
+    const endDate = new Date(selectedDay);
+    endDate.setHours(selectedTime.getHours() + 1, 0, 0, 0);
+
+    return {startDate, endDate};
+  }
+
+  const handleNextStep = () => {
+    if (currentNumberOfGuests < reservation.totalGuests) {
+      notification.open({message: 'Guests', description: 'Not all of your guests have been seated'});
+      return;
+    }
+
+    const {startDate, endDate} = formatDate(); 
+
+    const withTableInfo = Object.assign(reservation, {tables: selectedTables, startDate, endDate});
     setReservation(res => ({...res, ...withTableInfo}));
     setState(state + 1);
   }
@@ -45,12 +53,11 @@ export default function ReservationTablePicker() {
     let currSelectedTables = [...selectedTables];
     
     availableTables.forEach(item => {
-      if (item.id === table.id) {
-        item.isSelected = !item.isSelected;
-        if (item.isSelected) {
+      if (item.tableId === table.tableId) {
+        if (!selectedTables.includes(item)) {
           currSelectedTables.push(table);
         } else {
-          currSelectedTables = currSelectedTables.filter(i => i.isSelected);
+          currSelectedTables.splice(selectedTables.indexOf(item), 1);
         }
       }
     });
@@ -65,18 +72,43 @@ export default function ReservationTablePicker() {
     setSelectedTables(currSelectedTables);
   }
 
-  console.log(reservation);
+  const handleDateSelection = (val) => {
+    setSelectedDay(new Date(val));
+  }
+
+  const handleTimeSelection = (val) => {
+    setSelectedTime(new Date(val));
+  }
+
+  const fetchTables = async () => {
+    const {startDate, endDate} = formatDate();
+    const functions = getFunctions();
+
+    // TODO: remove this after debugging
+    connectFunctionsEmulator(functions, 'localhost', 5001);
+
+    const functionHandle = httpsCallable(functions, 'findTables');
+    const response = await functionHandle({ startDate, endDate });
+    console.log(response);
+    if (response.data) setAvailableTables(response.data);
+  }
+
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <div style={{ display: 'flex', maxWidth: '60rem', gap: '2rem' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', flex: 4 }}>
-          {availableTables.map(table => {
+      <div style={{ display: 'flex', maxWidth: '70rem', gap: '2rem' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', flex: 2, alignContent: availableTables.length === 0 ? 'center' : 'start'}}>
+          {availableTables.length === 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', flex: 2 }}>
+            <Typography.Title level={5}>Nothing to show here</Typography.Title>
+            <Empty />
+          </div>
+          ) : availableTables.map(table => {
             return (
-              <div key={table.id} onClick={() => handleTableSelection(table)}>
-                <Card hoverable style={{ borderColor: `${table.isSelected ? '#40a9ff' : 'rgb(240,240,240)'}` }}>
+              <div key={table.name} onClick={() => handleTableSelection(table)}>
+                <Card hoverable style={{ borderColor: `${selectedTables.includes(table)? '#40a9ff' : 'rgb(240,240,240)'}` }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem'}}>
-                    <img src={table.icon} height={64} width={64} />
+                    <img src={require(`../../dinner-${table.icon}.png`)} height={64} width={64} />
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       <p style={{ fontWeight: 600, marginBlockEnd: 0 }}>{table.name}</p>
                       <p style={{  marginBlockEnd: 0  }}>Capacity: {table.capacity}</p>
@@ -89,16 +121,20 @@ export default function ReservationTablePicker() {
         </div>
         <div style={{ flexGrow: 0, flexBasis: 'auto', width: 1.5, backgroundColor: 'rgb(240,240,240)' }} />
         <div style={{ flex: 1 }}>
-          <Statistic title="Seated guests" value={currentNumberOfGuests} suffix={`/${reservation.totalGuests}`}/>
-          <br/>
-          <Text type="secondary">Date</Text>
-          <br/>
-          <Text>Test</Text>
-          <br/>
-          <br/>
-          <Text type="secondary">Time</Text>
-          <br/>
-          <Text>Test</Text>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div>
+              <Calendar fullscreen={false} defaultValue={moment(selectedDay)} onSelect={handleDateSelection}/>
+            </div>
+            <div style={{ flexGrow: 0, flexBasis: 'auto', height: 1.5, backgroundColor: 'rgb(240,240,240)' }} />
+            <div>
+              <TimePicker defaultValue={moment(selectedTime)} format="HH:mm A" onSelect={handleTimeSelection} minuteStep={60}/>
+              <Button style={{ marginLeft: '1rem' }} onClick={fetchTables}>Refresh</Button>
+            </div>
+            <div style={{ flexGrow: 0, flexBasis: 'auto', height: 1.5, backgroundColor: 'rgb(240,240,240)' }} />
+            <div>
+              <Statistic title="Seated guests" value={currentNumberOfGuests} suffix={`/${reservation.totalGuests}`}/>
+            </div>
+          </div>
         </div>
       </div>
       <div>

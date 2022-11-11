@@ -47,7 +47,7 @@ export default function SignupForm() {
     const [loading, setLoading] = useState(false);
     const [billingSameAsMailing, setBillingSameAsMailling] = useState(false);
     const [form] = Form.useForm();
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
 
     const onFinish = (values) => {
         const { name, email, password, mailingAddress, billingAddress, phone, preferredPayment } = values;

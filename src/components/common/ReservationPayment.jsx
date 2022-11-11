@@ -1,14 +1,20 @@
 import React, { useContext } from 'react'
 import { ReservationContext } from '../routes/ReservePage'
 import { Button } from 'antd';
+import { connectFunctionsEmulator, getFunctions, httpsCallable } from 'firebase/functions';
 
 export default function ReservationPayment() {
   const {state, setState, reservation, setReservation } = useContext(ReservationContext);
 
   console.log(reservation);
 
-  const handleNextStep = () => {
+  const handleNextStep = async() => {
+    const functions = getFunctions();
+    connectFunctionsEmulator(functions, 'localhost', 5001);
+    const functionHandle = httpsCallable(functions, 'makeReservation');
 
+    const res = await functionHandle(reservation);
+    console.log(res);
   }
 
   const handlePrevStep = () => {

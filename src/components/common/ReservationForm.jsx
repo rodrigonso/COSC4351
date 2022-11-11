@@ -2,16 +2,18 @@ import React, { useContext, useState } from 'react'
 
 import {Button, DatePicker, Form, Input, TimePicker, Typography} from 'antd';
 import { ReservationContext } from '../routes/ReservePage';
+import { useNavigate } from 'react-router-dom';
 
 const {Title, Text} = Typography;
 
-export default function ReservationForm({guest}) {
+export default function ReservationForm() {
+const navigate = useNavigate();
+ const [form] = Form.useForm();
  const [userInfo, setUserInfo] = useState({});
  const { state, setState, reservation, setReservation } = useContext(ReservationContext);
 
  const handleNextStep = () => {
     const withUserInfo = Object.assign(reservation, userInfo);
-
     setReservation(withUserInfo);
     setState(state + 1);
  }
@@ -28,7 +30,7 @@ export default function ReservationForm({guest}) {
     <div style={{ display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', gap: '5rem' }}>
             <div style={{ flexGrow: 3 }}>
-                <Form>
+                <Form form={form} onFinish={handleNextStep}>
                     <Form.Item label="Name">
                         <Input onChange={(e) => handleInput(e, 'name')} style={{ width: 340 }}/>
                     </Form.Item>
@@ -43,28 +45,21 @@ export default function ReservationForm({guest}) {
                             <Input onChange={(e) => handleInput(e, 'totalGuests')} type="number" />
                         </Form.Item>
                     </Form.Item>
-                    <Form.Item name="Date" label="Date">
-                        <Form.Item style={{ display: 'inline-block', width: 'calc(40% - 4px)'}}>
-                            <DatePicker />
-                        </Form.Item>
-                        <Form.Item style={{ display: 'inline-block', width: 'calc(40% - 4px)', marginLeft: '0.5rem'}}>
-                            <TimePicker />
-                        </Form.Item>
+                    <Form.Item>
+                        <Button htmlType="submit" type="primary">Next ➜</Button>
                     </Form.Item>
                 </Form>
             </div>
             <div style={{ flexGrow: 0, flexBasis: 'auto', width: 1.5, backgroundColor: 'rgb(240,240,240)' }} />
-            <div style={{ flexGrow: 0, flexShrink: 0, flexBasis: '17.5rem'}}>
+            <div style={{ flexGrow: 0, flexShrink: 0, flexBasis: '17.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', textAlign: 'center'}}>
                 <Title level={4}>
                     Reserve faster!
                 </Title>
                 <Text>
                     Checkout faster when you create an account with Ringabell
                 </Text>
+                <Button onClick={() => navigate("/auth", { state: { operation: 'signup'} })} type="link" style={{ marginTop: '1rem' }}>Sign up</Button>
             </div>
-        </div>
-        <div style={{ flexGrow: 1 }}>
-            <Button onClick={handleNextStep} type="primary">Next ➜</Button>
         </div>
     </div>
   )
