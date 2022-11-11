@@ -1,7 +1,7 @@
 import React, {useContext} from 'react'
 import { Typography, Button, Card, Statistic } from 'antd';
 import { ReservationContext } from '../routes/ReservePage';
-import { CurrentUserContext } from './BasicLayout';
+import { CurrentUserContext } from '../../App';
 
 export default function ReservationAuthUser() {
     const { state, setState, reservation, setReservation } = useContext(ReservationContext);

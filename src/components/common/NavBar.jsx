@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { Menu, Button, Typography } from 'antd';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import router, { getAuthRoute, getRootChildrenRoute } from "../../routeConfig";
 import logo from "../../bell-ring.png";
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
-import { CurrentUserContext } from './BasicLayout';
+import { CurrentUserContext } from '../../App';
 
 const {Text} = Typography;
 
 export default function NavBar({selectedMenuKey}) {
   const { currentUser } = useContext(CurrentUserContext);
+  const navigate = useNavigate();
 
   const isAuthRoute = (route) => route.path === "/auth";
   const getMenuItems = () => {
@@ -22,6 +23,13 @@ export default function NavBar({selectedMenuKey}) {
     signOut(auth).then(res => console.log(res));
   }
 
+  const handleSignUp = () => {
+    navigate('/auth', { state: { operation: 'signup' } });
+  }
+
+  const handleSignIn = () => {
+    navigate('/auth', { state: { operation: 'signin'} });
+  }
 
   const renderUserAvatar = () => {
     if (currentUser) 
@@ -39,10 +47,8 @@ export default function NavBar({selectedMenuKey}) {
     );
     else return (
       <>
-        <Link to={getAuthRoute().path}>{getAuthRoute().name}</Link>
-        <Button size="small" style={{ marginLeft: '1rem' }} type="primary">
-          <Link to={getAuthRoute().path}>Sign up</Link>
-        </Button>
+        <Button onClick={handleSignIn} type="link">Sign in</Button>
+        <Button onClick={handleSignUp} size="small" style={{ marginLeft: '1rem' }} type="primary">Sign up</Button>
       </>
     )
   }
