@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState, useContext } from 'react'
 import "../common/styles/common.css"
 
 import ReservationForm from '../common/ReservationForm';
@@ -7,14 +7,19 @@ import ReservationPayment from '../common/ReservationPayment';
 
 import { Layout, Typography, Button, Steps, Card } from 'antd';
 import BasicLayout from '../common/BasicLayout';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import ReservationLogin from '../common/ReservationLogin';
+import ReservationAuthUser from '../common/ReservationAuthUser';
 
 const { Header, Content } = Layout;
 const { Title, Text} = Typography;
 
+export const ReservationContext = React.createContext();
+
 const States = Object.freeze({
   USER_INFO: 0,
   CHOOSE_TABLE: 1,
-  SUBMIT_PAYMENT: 2
+  SUBMIT_PAYMENT: 2,
 });
 
 const steps = [
@@ -24,38 +29,25 @@ const steps = [
 ];
 
 export default function ReservePage() {
+  const [guest, setGuest] = useState(false);
+  const [auth, setAuth] = useState(false);
   const [state, setState] = useState(States.USER_INFO)
+  const [reservation, setReservation] = useState({totalGuests: 4});
+  useEffect(() => {
+    const auth = getAuth();
+    onAuthStateChanged(auth, user => {
+      if (user) setAuth(true);
+      else setAuth(false);
+    })
+  });
 
   const renderCardBody = () => {
-    if (state === States.USER_INFO) return <ReservationForm />
+    console.log(auth, state);
+    if (!auth && !guest && state === States.USER_INFO) return <ReservationLogin handleGuest={() => setGuest(!guest)}/>
+    if (auth && state === States.USER_INFO) return <ReservationAuthUser />
+    if (guest && state === States.USER_INFO) return <ReservationForm guest={guest} />
     if (state === States.CHOOSE_TABLE) return <ReservationTablePicker />
     if (state === States.SUBMIT_PAYMENT) return <ReservationPayment /> 
-  }
-
-  const renderCardAction = () => {
-    if (state === States.USER_INFO) return <Button onClick={handleNextStep} type="primary">Next ➜</Button>
-    else if (state === States.SUBMIT_PAYMENT) return (
-      <>
-        <Button onClick={handlePrevStep} type="secondary">Back</Button>
-        <Button style={{ marginLeft: '0.5rem' }} onClick={handleSubmitPayment} type="primary">Submit</Button>
-      </>
-    )
-    else return (
-      <>
-        <Button onClick={handlePrevStep} type="secondary">Back</Button>
-        <Button style={{ marginLeft: '0.5rem' }}onClick={handleNextStep} type="primary">Next ➜</Button>
-      </>
-    )
-  }
-
-  const handleNextStep = () => {
-    if (state === States.SUBMIT_PAYMENT) return;
-    setState(state + 1);
-  }
-
-  const handlePrevStep = () => {
-    if (state === States.USER_INFO) return;
-    setState(state - 1);
   }
 
   const handleSubmitPayment = () => {
@@ -66,13 +58,14 @@ export default function ReservePage() {
   }
 
   return (
-    <BasicLayout>
+    <BasicLayout selectedMenuKey="/reserve">
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <Title>Reserve your table</Title>
       </div>
-      <Card title={<Steps current={state} size="small" items={steps} style={{ minWidth: '45rem' }} />}>
-        {renderCardBody()}
-        {renderCardAction()}
+      <Card style={{ padding: 0 }} title={<Steps current={state} size="small" items={steps} style={{ minWidth: '45rem', maxWidth: '60rem'}} />}>
+        <ReservationContext.Provider value={{ state, setState, reservation, setReservation }}>
+          {renderCardBody()}
+        </ReservationContext.Provider>
       </Card>
     </BasicLayout>
   )

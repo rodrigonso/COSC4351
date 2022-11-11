@@ -1,18 +1,15 @@
-import React from 'react'
+import React, {useEffect} from 'react'
+
 import "../common/styles/common.css"
-
 import {Link} from 'react-router-dom';
-
 import { Typography, Button } from 'antd';
 import BasicLayout from '../common/BasicLayout';
 
 const { Title, Paragraph, Text} = Typography;
 
 export default function RootPage() {
-
   return (
-    <BasicLayout>
-      {/* <div style={{ display: 'flex', justifyContent: 'center', marginTop: '3rem', flexDirection: 'column' }}> */}
+    <BasicLayout selectedMenuKey="/">
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
           <div>
             <Title strong style={{ fontSize: 60 }}>Easily find tables</Title>
@@ -27,7 +24,6 @@ export default function RootPage() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Button size="large" type="primary" style={{ width: 200, height: 50 }}><Link to="/reserve">Reserve</Link></Button>
         </div>
-      {/* </div> */}
     </BasicLayout>
   )
 }
