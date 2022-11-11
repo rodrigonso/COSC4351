@@ -23,7 +23,7 @@ export default function ReservationAuthUser() {
                     <br />
                     <Statistic title="Points" value={currentUser ? currentUser.loyaltyPoints : 0}/>
                     <Typography.Text type="secondary">Loyalty number</Typography.Text>
-                    <Typography.Text keyboard>{currentUser ? currentUser.loyaltyId : 'N/A'}</Typography.Text>
+                    <Typography.Text code>{currentUser ? currentUser.loyaltyId : 'N/A'}</Typography.Text>
                 </div>
                 <div style={{ flexGrow: 1, marginTop: '2rem' }}>
                     <Button onClick={handleNextStep} type="primary">Next ➜</Button>
