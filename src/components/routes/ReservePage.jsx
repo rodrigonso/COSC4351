@@ -1,18 +1,17 @@
-import React, { useEffect, useState, useContext } from 'react'
+import React, { useEffect, useState } from 'react'
 import "../common/styles/common.css"
 
 import ReservationForm from '../common/ReservationForm';
 import ReservationTablePicker from '../common/ReservationTablePicker';
 import ReservationPayment from '../common/ReservationPayment';
 
-import { Layout, Typography, Button, Steps, Card } from 'antd';
+import { Typography, Steps, Card } from 'antd';
 import BasicLayout from '../common/BasicLayout';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import ReservationLogin from '../common/ReservationLogin';
 import ReservationAuthUser from '../common/ReservationAuthUser';
 
-const { Header, Content } = Layout;
-const { Title, Text} = Typography;
+const { Title} = Typography;
 
 export const ReservationContext = React.createContext();
 
@@ -33,6 +32,7 @@ export default function ReservePage() {
   const [auth, setAuth] = useState(false);
   const [state, setState] = useState(States.USER_INFO)
   const [reservation, setReservation] = useState({ total: 10 });
+
   useEffect(() => {
     const auth = getAuth();
     onAuthStateChanged(auth, user => {
@@ -47,13 +47,6 @@ export default function ReservePage() {
     if (guest && state === States.USER_INFO) return <ReservationForm guest={guest} />
     if (state === States.CHOOSE_TABLE) return <ReservationTablePicker />
     if (state === States.SUBMIT_PAYMENT) return <ReservationPayment /> 
-  }
-
-  const handleSubmitPayment = () => {
-    if (state !== States.SUBMIT_PAYMENT) return;
-
-    // TODO: process payment and redirect user
-    console.log("TAKE PAYMENT");
   }
 
   return (

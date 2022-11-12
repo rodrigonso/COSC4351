@@ -16,7 +16,7 @@ export default function PaymentForm({handleSubmit, handleCancel}) {
         const res = await stripe.confirmPayment({
             elements,
             confirmParams: {
-                return_url: 'http://localhost:3000/success'
+                return_url: process.env.REACT_APP_REDIRECT_URL
             }
         });
         setLoading(false);

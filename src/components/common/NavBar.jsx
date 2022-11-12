@@ -1,12 +1,10 @@
-import React, { useState, useEffect, useContext } from 'react'
-import { Menu, Button, Typography } from 'antd';
+import React, { useContext } from 'react'
+import { Menu, Button } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
-import router, { getAuthRoute, getRootChildrenRoute } from "../../routeConfig";
+import router from "../../routeConfig";
 import logo from "../../bell-ring.png";
-import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
+import { getAuth, signOut } from 'firebase/auth';
 import { CurrentUserContext } from '../../App';
-
-const {Text} = Typography;
 
 export default function NavBar({selectedMenuKey}) {
   const { currentUser } = useContext(CurrentUserContext);
@@ -37,11 +35,11 @@ export default function NavBar({selectedMenuKey}) {
     if (currentUser) 
       return (
       <Menu mode="horizontal">
-        <Menu.SubMenu title={`Hi, ${currentUser.name.split(' ')[0]}`}>
-          <Menu.Item>
+        <Menu.SubMenu key={1} title={`Hi, ${currentUser.name.split(' ')[0]}`}>
+          <Menu.Item key={2}>
             Profile
           </Menu.Item>
-          <Menu.Item  onClick={handleSignOut}>
+          <Menu.Item key={3} onClick={handleSignOut}>
             Sign out
           </Menu.Item>
         </Menu.SubMenu>
@@ -59,7 +57,7 @@ export default function NavBar({selectedMenuKey}) {
     <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 24, paddingBottom: 24 }}>
       <div style={{ flexGrow: 1 }}>
        <Link to="/">
-        <img src={logo} height={32} width={32} style={{ marginTop: -10}} />
+        <img alt="ringabell logo" src={logo} height={32} width={32} style={{ marginTop: -10}} />
         <span style={{ marginLeft: '0.25rem', fontSize: 16, fontWeight: 700, marginBottom: 5, color: 'black' }}>Ringabell</span>
        </Link>
       </div>
@@ -73,6 +71,7 @@ export default function NavBar({selectedMenuKey}) {
                           <Link key={route.path} to={route.path}>{route.name}</Link>
                       </Menu.Item>
                   )
+                  else return null
               })}
           </Menu>
         </div>

@@ -1,8 +1,7 @@
 import React, {useState} from 'react'
-import { Button, Card, Checkbox, Form, Input } from 'antd';
+import { Button, Card, Form, Input } from 'antd';
 
 import { getAuth, signInWithEmailAndPassword  } from 'firebase/auth';
-import { FirebaseApp } from '../..';
 import { useNavigate  } from 'react-router-dom';
 
 

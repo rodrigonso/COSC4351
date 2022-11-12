@@ -1,11 +1,11 @@
 import React, {useContext, useState} from 'react'
-import { Typography, Button, Statistic, Form, Input, notification } from 'antd';
+import { Typography, Button, Statistic, Input, notification } from 'antd';
 import { ReservationContext } from '../routes/ReservePage';
 import { CurrentUserContext } from '../../App';
 
 export default function ReservationAuthUser() {
     const [numberOfGuests, setNumberOfGuests] = useState(0);
-    const { state, setState, reservation, setReservation } = useContext(ReservationContext);
+    const { state, setState, reservation } = useContext(ReservationContext);
     const { currentUser } = useContext(CurrentUserContext);
 
     const handleNextStep = () => {

@@ -1,8 +1,8 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { ReservationContext } from '../routes/ReservePage'
-import { Button, Form, Modal, notification, Select, Statistic, Tag, Typography } from 'antd';
-import { connectFunctionsEmulator, getFunctions, httpsCallable } from 'firebase/functions';
-import {Elements, PaymentElement, useElements, useStripe} from '@stripe/react-stripe-js';
+import { notification, Statistic, Tag, Typography } from 'antd';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import {Elements} from '@stripe/react-stripe-js';
 import {loadStripe} from '@stripe/stripe-js';
 import moment from 'moment';
 import PaymentForm from './PaymentForm';
@@ -14,7 +14,7 @@ export default function ReservationPayment() {
 
   const [loading, setLoading] = useState(false);
   const [clientSecret, setClientSecret] = useState(undefined);
-  const {state, setState, reservation, setReservation } = useContext(ReservationContext);
+  const {state, setState, reservation } = useContext(ReservationContext);
 
   useEffect(() => {
     setLoading(true);
@@ -26,16 +26,17 @@ export default function ReservationPayment() {
       notification.error({ message: 'Payment failed', description: 'We are unable to process payments right now, please try again later' });
     })
     setLoading(false);
-  }, []);
+  }, [functions, reservation]);
 
   console.log(reservation);
 
   const handleNextStep = async() => {
 
     // TODO: remove line below after testing
-    connectFunctionsEmulator(functions, 'localhost', 5001);
+    // connectFunctionsEmulator(functions, 'localhost', 5001);
+
     const functionHandle = httpsCallable(functions, 'makeReservation');
-    const res = await functionHandle(reservation);
+    await functionHandle(reservation);
   }
 
   const handlePrevStep = () => {

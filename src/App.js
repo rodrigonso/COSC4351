@@ -6,17 +6,17 @@ import {
 import router from "./routeConfig";
 
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, collection, doc, getDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
 
 export const CurrentUserContext = createContext();
 
 function App() {
-const [loading, setLoading] = useState(true);
-const [currentUser, setCurrentUser] = useState(undefined);
+  const auth = getAuth();
+  const db = getFirestore();  
+  const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(undefined);
 
   useEffect(() => {
-    const auth = getAuth();
-    const db = getFirestore();  
   
     setLoading(true);
     onAuthStateChanged(auth, async user => {
@@ -29,7 +29,7 @@ const [currentUser, setCurrentUser] = useState(undefined);
     });
   
     setTimeout(() => setLoading(false), 500);
-  }, []);
+  }, [auth, db]);
 
   return (
    <CurrentUserContext.Provider value={{ currentUser, loading }}>

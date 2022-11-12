@@ -1,4 +1,4 @@
-import React, {useState, useEffect, createContext, useContext} from 'react'
+import React, { useContext} from 'react'
 
 import "./styles/common.css"
 import NavBar from "./NavBar";
@@ -6,12 +6,8 @@ import FooterComp from "./FooterComp";
 
 import { LoadingOutlined } from '@ant-design/icons';
 import { Layout, Spin } from 'antd';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, collection, doc, getDoc } from 'firebase/firestore';
 import { CurrentUserContext } from '../../App';
 const { Header, Content } = Layout;
-
-// export const CurrentUserContext = createContext();
 
 export default function BasicLayout({selectedMenuKey, children}) {
   const { currentUser, loading } = useContext(CurrentUserContext);

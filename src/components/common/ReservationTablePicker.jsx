@@ -1,15 +1,13 @@
 import React, { useContext, useState } from 'react'
-import { Card, Typography, Statistic, Button, Calendar, TimePicker, notification, Empty, Spin } from 'antd';
-import moment from 'moment';
-
+import { Card, Statistic, Button, Calendar, TimePicker, notification, Empty, Spin } from 'antd';
 import { ReservationContext } from '../routes/ReservePage';
-import { connectFunctionsEmulator, getFunctions, httpsCallable } from 'firebase/functions';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { LoadingOutlined } from '@ant-design/icons';
-
-const { Title, Text } = Typography;
+import moment from 'moment';
 
 export default function ReservationTablePicker() {
   const { state, setState, reservation, setReservation } = useContext(ReservationContext);
+  const functions = getFunctions();
 
   const [loading, setLoading] = useState(false);
   const [selectedTime, setSelectedTime] = useState(null);
@@ -29,12 +27,12 @@ export default function ReservationTablePicker() {
   }
 
   const handleNextStep = () => {
+    const {startDate, endDate} = formatDate(); 
+
     if (currentNumberOfGuests < reservation.totalGuests) {
       notification.open({message: 'Guests', description: 'Not all of your guests have been seated'});
       return;
     }
-
-    const {startDate, endDate} = formatDate(); 
 
     const withTableInfo = Object.assign(reservation, {tables: selectedTables, startDate, endDate});
     setReservation(res => ({...res, ...withTableInfo}));
@@ -47,7 +45,7 @@ export default function ReservationTablePicker() {
 
   const handleTableSelection = (table) => {
     const { totalGuests } = reservation;
-
+    
     // prevents user from choosing more tables than they need
     if (currentNumberOfGuests === totalGuests && !selectedTables.includes(table)) return;
 
@@ -85,21 +83,23 @@ export default function ReservationTablePicker() {
     const {startDate, endDate} = formatDate();
     setLoading(true);
 
-    if (!startDate || !endDate ) {
-      console.log("CANT!");
-      return;
-    }
-
-    const functions = getFunctions();
+    if (!startDate || !endDate ) return;
 
     // TODO: remove this after debugging
-    connectFunctionsEmulator(functions, 'localhost', 5001);
+    // connectFunctionsEmulator(functions, 'localhost', 5001);
 
     const functionHandle = httpsCallable(functions, 'findTables');
-    const response = await functionHandle({ startDate, endDate });
-    console.log(response);
-    if (response.data) setAvailableTables(response.data);
+    const { data } = await functionHandle({ startDate, endDate });
+    if (data.error) {
+      console.log(data);
+      notification.error({ message: data.message, description: data.description });
+      console.error(data.error);
+      setLoading(false);
+      return;
+    }
+    
     setLoading(false);
+    setAvailableTables(data);
   }
 
   const renderTables = () => {
@@ -114,7 +114,7 @@ export default function ReservationTablePicker() {
           <div key={table.name} onClick={() => handleTableSelection(table)}>
             <Card hoverable style={{ borderColor: `${selectedTables.includes(table)? '#40a9ff' : 'rgb(240,240,240)'}` }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem'}}>
-                <img src={require(`../../dinner-${table.icon}.png`)} height={64} width={64} />
+                <img alt="table logo" src={require(`../../dinner-${table.icon}.png`)} height={64} width={64} />
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <p style={{ fontWeight: 600, marginBlockEnd: 0 }}>{table.name}</p>
                   <p style={{  marginBlockEnd: 0  }}>Capacity: {table.capacity}</p>

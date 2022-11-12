@@ -2,7 +2,9 @@ const functions = require("firebase-functions");
 const admin = require('firebase-admin');
 const short = require('short-uuid');
 const cors = require('cors');
-const stripe  = require('stripe')('sk_test_BpIgdx6PbZJJMgWCFgbMYWlw');
+const dotenv = require('dotenv');
+dotenv.config();
+const stripe  = require('stripe')(process.env.STRIPE_API_KEY);
 const { uuidv4 } = require("@firebase/util");
 
 admin.initializeApp();
@@ -15,27 +17,21 @@ admin.initializeApp();
 //   response.send("Hello from Firebase!");
 // });
 
-
-const startOfToday = (targetDate) => {
+const startOfDate = (targetDate) => {
     const date = new Date();
     date.setHours(0,0,0,0);
     date.setDate(targetDate.getDate());
     date.setMonth(targetDate.getMonth());
     date.setFullYear(targetDate.getFullYear());
-
-    console.log("START OF DAY", new Date(date));
-
     return new Date(date);
 }
 
-const endOfToday = (targetDate) => {
+const endOfDate = (targetDate) => {
     const date = new Date();
     date.setHours(23, 59, 59, 999);
     date.setDate(targetDate.getDate());
     date.setMonth(targetDate.getMonth());
     date.setFullYear(targetDate.getFullYear());
-
-    console.log("END OF DAY", new Date(date));
     return new Date(date);
 }
 
@@ -52,19 +48,19 @@ const detectIntersection = (startA, startB, endA, endB) => {
     else return false;
 }
 
-
-const isGuestUser = (reservationData) => {
-    return !Object.hasOwn(reservationData, 'id');
-}
-
+const isGuestUser = (reservationData) => !Object.hasOwn(reservationData, 'id');
 
 exports.createUser = functions.https.onRequest(async(req, res) => {
     return cors()(req, res, async() => {
         const { data } = req.body;
         const userInfo = Object.assign(data, {id: data.id, loyaltyId: short.generate(), loyaltyPoints: 0});
-
-        await admin.firestore().collection('users').doc(data.id).set(userInfo);
-        res.send({data: req.body});
+        
+        try {
+            await admin.firestore().collection('users').doc(data.id).set(userInfo);
+            res.send({data: req.body});
+        } catch(ex) {
+            res.send({ data: { message: "User creation failed", description: 'Something went wrong while creating a new user', error: ex } });
+        }
     });
 });
 
@@ -73,13 +69,17 @@ exports.createPaymentIntent = functions.https.onRequest(async (req, res) => {
     return cors()(req, res, async() => {
         const { data } = req.body;
 
-        const paymentIntent = await stripe.paymentIntents.create({
-            amount: (data.total * 100),
-            currency: 'usd',
-            automatic_payment_methods: { enabled: true }
-        });
-
-        res.send({ data: {clientSecret: paymentIntent.client_secret} });
+        try {
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: (data.total * 100),
+                currency: 'usd',
+                automatic_payment_methods: { enabled: true }
+            });
+    
+            res.send({ data: {clientSecret: paymentIntent.client_secret} });
+        } catch(ex) {
+            res.send({ data: { message: "Payment failed", message: 'Something went wrong while processing the payment', error: ex }});
+        }
     });
 });
 
@@ -108,7 +108,7 @@ exports.makeReservation = functions.https.onRequest(async (req, res) => {
             }
             res.send({ data });
         } catch(ex) {
-            res.send({ data: ex })
+            res.send({ message: "Reservation failed", description: "Something went wrong while making your reservation", error: ex })
         }
 
     });
@@ -119,32 +119,42 @@ exports.findTables = functions.https.onRequest(async (req, res) => {
     return cors()(req, res, async() => {
         const { startDate, endDate } = req.body.data;
 
-        // TODO: validate startDate and endDate to make sure is within business hours.
+        const dateStart = startOfDate(new Date(endDate));
+        const dateEnd = endOfDate(new Date(endDate))
+
+        if (dateStart.getTime() < new Date()) {
+            res.send({ data: { message: "Invalid date", description: 'Reservation date cant be in the past', error: {}} })
+            return;
+        }
 
         let availableTables = [];
         let scheduleTables = [];
 
-        const tablesQuery = await admin.firestore().collection('tables').get();
-        tablesQuery.forEach(doc => {
-            const table = Object.assign({ tableId: doc.id }, doc.data());
-            availableTables.push(table);
-        });
+        try {
+            const tablesQuery = await admin.firestore().collection('tables').get();
+            tablesQuery.forEach(doc => {
+                const table = Object.assign({ tableId: doc.id }, doc.data());
+                availableTables.push(table);
+            });
+    
+            const scheduleQuery = await admin.firestore().collection('schedule').where("endDate", ">=", dateStart).where("endDate", "<=", dateEnd).get();
+            scheduleQuery.forEach(doc => {
+                const table = doc.data();
+                const {tableId, startDate, endDate} = table;
+                scheduleTables.push({ tableId, startDate: startDate.toDate(), endDate: endDate.toDate() });
+            });
+    
+            scheduleTables.forEach(table => {
+                const intersect = detectIntersection(table.startDate, startDate, table.endDate, endDate);
+                if (intersect) {
+                    availableTables = availableTables.filter(t => t.tableId !== table.tableId);
+                }
+            });
 
-        const scheduleQuery = await admin.firestore().collection('schedule').where("endDate", ">=", startOfToday(new Date(endDate))).where("endDate", "<=", endOfToday(new Date(endDate))).get();
-        scheduleQuery.forEach(doc => {
-            const table = doc.data();
-            scheduleTables.push({ tableId: table.tableId, day: table.day, startDate: table.startDate.toDate(), endDate: table.endDate.toDate() });
-        });
+            res.send({ data: availableTables });
+        } catch(ex) {
+            res.send({ data: { message: "Coudn't load tables", description: 'Something went wrong while looking for tables', error: ex } });
+        }
 
-        console.log(availableTables);
-        scheduleTables.forEach(table => {
-            const intersect = detectIntersection(table.startDate, startDate, table.endDate, endDate);
-            if (intersect) {
-                console.log("INTERSECT", table);
-                availableTables = availableTables.filter(t => t.tableId !== table.tableId);
-            }
-        })
-
-        res.send({ data: availableTables });
     });
 });

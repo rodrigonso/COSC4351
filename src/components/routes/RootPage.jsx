@@ -1,11 +1,11 @@
-import React, {useEffect} from 'react'
+import React from 'react'
 
 import "../common/styles/common.css"
 import {Link} from 'react-router-dom';
 import { Typography, Button } from 'antd';
 import BasicLayout from '../common/BasicLayout';
 
-const { Title, Paragraph, Text} = Typography;
+const { Title, Text} = Typography;
 
 export default function RootPage() {
   return (

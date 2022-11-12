@@ -1,21 +1,16 @@
 import React, {useState} from 'react'
 import {
-    AutoComplete,
     Button,
     Card,
-    Cascader,
     Checkbox,
-    Col,
     Form,
     Input,
-    InputNumber,
-    Row,
     Select,
   } from 'antd';
 
 import { useNavigate } from 'react-router-dom';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { getFunctions, httpsCallable, connectFunctionsEmulator } from 'firebase/functions';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 const { Option } = Select
 
@@ -44,6 +39,7 @@ const formItemLayout = {
 
 
 export default function SignupForm() {
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [billingSameAsMailing, setBillingSameAsMailling] = useState(false);
     const [form] = Form.useForm();
@@ -56,16 +52,16 @@ export default function SignupForm() {
         const functions = getFunctions();
     
         // TODO: remove this after debugging
-        connectFunctionsEmulator(functions, 'localhost', 5001);
+        // connectFunctionsEmulator(functions, 'localhost', 5001);
         
         setLoading(true);
         const callHandle = httpsCallable(functions, 'createUser');
         createUserWithEmailAndPassword(auth, email, password).then(res => {
-            console.log(res);
             const user = Object.assign({name, email, mailingAddress, phone, preferredPayment}, {id: res.user.uid})
             if (values.billingSameAsMailing) user.billingAddress = billingAddress;
             callHandle(user);
             setLoading(false);
+            navigate('/auth', { state: { operation: 'signin' } })
         }).catch(err => console.error(err));
     }
 
@@ -200,7 +196,7 @@ export default function SignupForm() {
             {...tailFormItemLayout}
         >
             <Checkbox>
-            I have read the <a href="">agreement</a>
+            I have read the agreement
             </Checkbox>
         </Form.Item>
         <Form.Item {...tailFormItemLayout}>
