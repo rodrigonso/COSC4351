@@ -1,11 +1,11 @@
 const functions = require("firebase-functions");
 const admin = require('firebase-admin');
 const short = require('short-uuid');
-const moment = require('moment');
+const cors = require('cors');
+const stripe  = require('stripe')('sk_test_BpIgdx6PbZJJMgWCFgbMYWlw');
+const { uuidv4 } = require("@firebase/util");
+
 admin.initializeApp();
-var cors = require('cors');
-
-
 
 // // Create and Deploy Your First Cloud Functions
 // // https://firebase.google.com/docs/functions/write-firebase-functions
@@ -45,11 +45,16 @@ const detectIntersection = (startA, startB, endA, endB) => {
     endA = new Date(endA).getTime();
     endB = new Date(endB).getTime();
  
-    if (startA <= startB && startB <= startA) return true;
+    if (startA < startB && startB < startA) return true;
     if (startA <= endB && endB <= endA) return true;
     if (startB < startA && endA < endB) return true;
 
     else return false;
+}
+
+
+const isGuestUser = (reservationData) => {
+    return !Object.hasOwn(reservationData, 'id');
 }
 
 
@@ -63,20 +68,49 @@ exports.createUser = functions.https.onRequest(async(req, res) => {
     });
 });
 
-exports.makeReservation = functions.https.onRequest(async (req, res) => {
+
+exports.createPaymentIntent = functions.https.onRequest(async (req, res) => {
     return cors()(req, res, async() => {
-        const {data} = req.body;
-        const db = admin.firestore();
+        const { data } = req.body;
 
-        console.log(data.startDate, data.endDate);
-
-        data.tables.forEach(async (table) => {
-            await db.collection('schedule').add(Object.assign(table, { userId: data.id, startDate: new Date(data.startDate), endDate: new Date(data.endDate) }));
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: (data.total * 100),
+            currency: 'usd',
+            automatic_payment_methods: { enabled: true }
         });
 
-        await db.collection('reservations').add(data);
+        res.send({ data: {clientSecret: paymentIntent.client_secret} });
+    });
+});
 
-        res.send({ data });
+exports.makeReservation = functions.https.onRequest(async (req, res) => {
+    return cors()(req, res, async() => {
+        const { data } = req.body;
+        const db = admin.firestore();
+        const guest = isGuestUser(data);
+
+        // If the user is a guest, we want to assign them an ID
+        if (guest)
+            data.id = uuidv4();
+
+        try {
+            data.tables.forEach(async (table) => {
+                await db.collection('schedule').add(Object.assign(table, { userId: data.id, startDate: new Date(data.startDate), endDate: new Date(data.endDate) }));
+            });
+    
+            await db.collection('reservations').add(data);
+
+            // If the user is a guest we now create a user document for them and set the `guest` flag to true
+            if (guest) {
+                await db.collection('users').doc(data.id).set({ id: data.id, name: data.name, email: data.email, guest: true });
+            } else {
+                await db.collection('users').doc(data.id).update({ loyaltyPoints: (data.loyaltyPoints + data.total) })
+            }
+            res.send({ data });
+        } catch(ex) {
+            res.send({ data: ex })
+        }
+
     });
 });
 
@@ -85,7 +119,7 @@ exports.findTables = functions.https.onRequest(async (req, res) => {
     return cors()(req, res, async() => {
         const { startDate, endDate } = req.body.data;
 
-        console.log(startDate, endDate);
+        // TODO: validate startDate and endDate to make sure is within business hours.
 
         let availableTables = [];
         let scheduleTables = [];
@@ -102,10 +136,12 @@ exports.findTables = functions.https.onRequest(async (req, res) => {
             scheduleTables.push({ tableId: table.tableId, day: table.day, startDate: table.startDate.toDate(), endDate: table.endDate.toDate() });
         });
 
+        console.log(availableTables);
         scheduleTables.forEach(table => {
             const intersect = detectIntersection(table.startDate, startDate, table.endDate, endDate);
             if (intersect) {
-                availableTables.splice(availableTables.indexOf(table), 1);
+                console.log("INTERSECT", table);
+                availableTables = availableTables.filter(t => t.tableId !== table.tableId);
             }
         })
 

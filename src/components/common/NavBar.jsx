@@ -13,10 +13,12 @@ export default function NavBar({selectedMenuKey}) {
   const navigate = useNavigate();
 
   const isAuthRoute = (route) => route.path === "/auth";
+  const isSuccessRoute = (route) => route.path === "/success";
   const getMenuItems = () => {
     if (router.routes.length === 0) return [];
     return router.routes;
   }
+
 
   const handleSignOut = () => {
     const auth = getAuth();
@@ -48,7 +50,7 @@ export default function NavBar({selectedMenuKey}) {
     else return (
       <>
         <Button onClick={handleSignIn} type="link">Sign in</Button>
-        <Button onClick={handleSignUp} size="small" style={{ marginLeft: '1rem' }} type="primary">Sign up</Button>
+        <Button onClick={handleSignUp} size="small" type="primary">Sign up</Button>
       </>
     )
   }
@@ -65,7 +67,7 @@ export default function NavBar({selectedMenuKey}) {
         <div style={{ marginLeft: 40 }}>
           <Menu mode="horizontal" style={{ border: 0 }} selectedKeys={[selectedMenuKey]}>
               {getMenuItems().map(route => {
-                if (!isAuthRoute(route))
+                if (!isAuthRoute(route) && !isSuccessRoute(route))
                   return (
                       <Menu.Item key={route.path}>
                           <Link key={route.path} to={route.path}>{route.name}</Link>

@@ -123,7 +123,7 @@ export default function SignupForm() {
 
         <Form.Item
             name="confirm"
-            label="Confirm Password"
+            label="Confirm"
             dependencies={['password']}
             hasFeedback
             rules={[
@@ -164,7 +164,7 @@ export default function SignupForm() {
         <Form.Item
             hidden={billingSameAsMailing}
             name="billingAddress"
-            label="Billing address"
+            label="Billing"
             rules={[{ required: !billingSameAsMailing, message: 'Please enter your billing address' }]}
         >
             <Input />
@@ -172,14 +172,14 @@ export default function SignupForm() {
 
         <Form.Item
             name="phone"
-            label="Phone Number"
+            label="Phone"
             rules={[{ required: true, message: 'Please enter your phone number' }]}
         >
             <Input style={{ width: '100%' }} />
         </Form.Item>
         <Form.Item
             name="preferredPayment"
-            label="Preferred payment"
+            label="payment"
             rules={[{ required: true, message: 'Please select a payment method' }]}
         >
             <Select placeholder="Select your payment">

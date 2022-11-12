@@ -31,17 +31,17 @@ const navigate = useNavigate();
         <div style={{ display: 'flex', gap: '5rem' }}>
             <div style={{ flexGrow: 3 }}>
                 <Form form={form} onFinish={handleNextStep}>
-                    <Form.Item label="Name">
+                    <Form.Item label="Name" name="name" rules={[{required: true, message: 'Please enter your name'}]}>
                         <Input onChange={(e) => handleInput(e, 'name')} style={{ width: 340 }}/>
                     </Form.Item>
-                    <Form.Item name="Email" label="Email" rules={[{type: 'email'}]} >
+                    <Form.Item name="Email" label="Email" rules={[{type: 'email', required: true, message: "Please enter a valid email"}]} >
                         <Input onChange={(e) => handleInput(e, 'email')} style={{ width: 342 }}/>
                     </Form.Item>
-                    <Form.Item name="Phone number" label="Phone number">
-                        <Form.Item style={{ display: 'inline-block', width: '9rem' }}>
+                    <Form.Item name="Phone number" label="Phone number"  >
+                        <Form.Item style={{ display: 'inline-block', width: '9rem' }} rules={[{required: true}]}>
                             <Input onChange={(e) => handleInput(e, 'phoneNumber')} />
                         </Form.Item>
-                        <Form.Item name="Guests" label='Guests' style={{ display: 'inline-block', width: '8rem', marginLeft: 10 }}>
+                        <Form.Item name="Guests" label='Guests' style={{ display: 'inline-block', width: '8rem', marginLeft: 10 }} rules={[{ required: true}]}>
                             <Input onChange={(e) => handleInput(e, 'totalGuests')} type="number" />
                         </Form.Item>
                     </Form.Item>

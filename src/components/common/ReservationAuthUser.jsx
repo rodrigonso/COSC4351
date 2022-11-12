@@ -26,6 +26,9 @@ export default function ReservationAuthUser() {
                     <Typography.Title level={5}>Your information</Typography.Title>
                     <Typography.Text>{currentUser ? currentUser.name : 'N/A'}</Typography.Text>
                     <Typography.Text>{currentUser ? currentUser.email : 'N/A'}</Typography.Text>
+                    <br/>
+                    <Typography.Text type="secondary">Mailling address</Typography.Text>
+                    <Typography.Text>{currentUser ? currentUser.mailingAddress : 'N/A'}</Typography.Text>
                     <br />
                     <Typography.Text>Number of guests: </Typography.Text>
                     <Input defaultValue={numberOfGuests} onChange={(e) => setNumberOfGuests(e.target.value)} type="number" style={{ width: '15%'}} />
@@ -43,15 +46,6 @@ export default function ReservationAuthUser() {
                     <Typography.Text code>{currentUser ? currentUser.loyaltyId : 'N/A'}</Typography.Text>
                 </div>
                 <div style={{ flexGrow: 0, flexBasis: 'auto', width: 1.5, backgroundColor: 'rgb(240,240,240)' }} />
-                <div>
-                    <Typography.Title level={5}>Preffered payment</Typography.Title>
-                    <Typography.Text>Visa ending 3434</Typography.Text>
-                    <br/>
-                    <br/>
-                    <Typography.Text type="secondary">Expiration date</Typography.Text>
-                    <br/>
-                    <Typography.Text>11-05-2023</Typography.Text>
-                </div>
             </div>
         </div>
     </div>
