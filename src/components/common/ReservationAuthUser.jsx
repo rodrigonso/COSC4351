@@ -1,5 +1,5 @@
 import React, {useContext, useState} from 'react'
-import { Typography, Button, Statistic, Input, notification } from 'antd';
+import { Typography, Button, Statistic, Input, notification, InputNumber } from 'antd';
 import { ReservationContext } from '../routes/ReservePage';
 import { CurrentUserContext } from '../../App';
 
@@ -31,7 +31,7 @@ export default function ReservationAuthUser() {
                     <Typography.Text>{currentUser ? currentUser.mailingAddress : 'N/A'}</Typography.Text>
                     <br />
                     <Typography.Text>Number of guests: </Typography.Text>
-                    <Input defaultValue={numberOfGuests} onChange={(e) => setNumberOfGuests(e.target.value)} type="number" style={{ width: '15%'}} />
+                    <InputNumber defaultValue={numberOfGuests} onChange={(val) => setNumberOfGuests(val)} min={1} max={20} style={{ width: '15%'}} />
                 </div>
                 <div style={{ flexGrow: 1, marginTop: '2rem' }}>
                     <Button onClick={handleNextStep} type="primary">Next ➜</Button>

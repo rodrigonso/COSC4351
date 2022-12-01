@@ -7,9 +7,9 @@ export default function SuccessPage() {
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', minHeight: '100vh' }}>
-        <Typography.Title level={3}>Reservation confirmed</Typography.Title>
+        <Typography.Title level={3}>Confirmed</Typography.Title>
         <Card style={{ minWidth: '25%', textAlign: 'center' }}>
-            <p>Reservation details here</p>
+            <p>Congratulations, your reservation has been successfuly been made.</p>
             <Button style={{ width: '100%' }} type="primary" onClick={() => navigate("/")}>Back to home</Button>
         </Card>
     </div>

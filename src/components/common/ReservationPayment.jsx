@@ -51,7 +51,7 @@ export default function ReservationPayment() {
       <div style={{ flex: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center', flexDirection: 'column', gap: '1rem' }}>
           <div>
             <Statistic title="Total" prefix="$" value={reservation.total} />
-            <Typography.Text type='secondary'>* Reservation fee</Typography.Text>
+            <Typography.Text type='secondary'>* No-show reservation deposit</Typography.Text>
           </div>
           <div style={{ flexGrow: 0, flexBasis: 'auto', height: 1.5, backgroundColor: 'rgb(240,240,240)' }}></div>
           {!loading && clientSecret && (<Elements stripe={stripePromise} options={{ clientSecret: clientSecret }}>
